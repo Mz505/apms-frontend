@@ -1,643 +1,322 @@
-// import React, { useState, useEffect } from 'react';
-// import { Calendar, Filter, Download, Eye } from 'lucide-react';
-// import Card, { CardContent, CardHeader } from '../components/UI/Card';
-// import Button from '../components/UI/Button';
-// import Badge from '../components/UI/Badge';
-// import { issuanceAPI } from '../services/api';
-// import { Issuance } from '../types';
-// import { format } from 'date-fns';
-// import toast from 'react-hot-toast';
-
-// const Issuances: React.FC = () => {
-//   const [issuances, setIssuances] = useState<Issuance[]>([]);
-//   const [loading, setLoading] = useState(true);
-//   const [filters, setFilters] = useState({
-//     issuedTo: '',
-//     startDate: '',
-//     endDate: ''
-//   });
-
-//   const recipientTypes = ['GIZ Guest', 'AZI Guest', 'Employee'];
-
-//   useEffect(() => {
-//     fetchIssuances();
-//   }, []);
-
-//   // const fetchIssuances = async () => {
-//   //   try {
-//   //     const response = await issuanceAPI.getAll(filters);
-//   //     setIssuances(response.issuances || []);
-//   //   } catch (error) {
-//   //     console.error('Failed to fetch issuances:', error);
-//   //     toast.error('Failed to load issuances');
-//   //   } finally {
-//   //     setLoading(false);
-//   //   }
-//   // };
-
-
-
-//   const fetchIssuances = async () => {
-//   try {
-//     // Remove empty string fields from filters
-//     const query = Object.fromEntries(
-//       Object.entries(filters).filter(([_, value]) => value.trim() !== '')
-//     );
-
-//     const response = await issuanceAPI.getAll(query);
-//     setIssuances(response.issuances || []);
-//   } catch (error) {
-//     console.error('Failed to fetch issuances:', error);
-//     toast.error('Failed to load issuances');
-//   } finally {
-//     setLoading(false);
-//   }
-// };
-
-//   const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-//     const { name, value } = e.target;
-//     setFilters(prev => ({ ...prev, [name]: value }));
-//   };
-
-//   const applyFilters = () => {
-//     setLoading(true);
-//     fetchIssuances();
-//   };
-
-//   const exportData = () => {
-//     try {
-//       // Create CSV content
-//       const headers = ['Medicine', 'Category', 'Recipient', 'Type', 'Quantity', 'Prescribed By', 'Date', 'Time'];
-//       const csvContent = [
-//         headers.join(','),
-//         ...issuances.map(issuance => [
-//           `"${issuance.medicineId.name}"`,
-//           `"${issuance.medicineId.category}"`,
-//           `"${issuance.recipientName}"`,
-//           `"${issuance.issuedTo}"`,
-//           issuance.quantityIssued,
-//           `"${issuance.prescribedBy}"`,
-//           format(new Date(issuance.issuedAt), 'yyyy-MM-dd'),
-//           format(new Date(issuance.issuedAt), 'HH:mm')
-//         ].join(','))
-//       ].join('\n');
-
-//       // Create and download file
-//       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-//       const link = document.createElement('a');
-//       const url = URL.createObjectURL(blob);
-//       link.setAttribute('href', url);
-//       link.setAttribute('download', `issuances_${format(new Date(), 'yyyy-MM-dd')}.csv`);
-//       link.style.visibility = 'hidden';
-//       document.body.appendChild(link);
-//       link.click();
-//       document.body.removeChild(link);
-
-//       toast.success('Export completed successfully');
-//     } catch (error) {
-//       toast.error('Failed to export data');
-//     }
-//   };
-
-//   const getRecipientBadgeVariant = (type: string) => {
-//     switch (type) {
-//       case 'GIZ Guest': return 'info';
-//       case 'AZI Guest': return 'warning';
-//       case 'Employee': return 'success';
-//       default: return 'default';
-//     }
-//   };
-
-//   if (loading) {
-//     return (
-//       <div className="flex items-center justify-center h-64">
-//         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-//       </div>
-//     );
-//   }
-
-//   return (
-//     <div className="space-y-6">
-//       {/* Header */}
-//       <div className="flex justify-between items-center">
-//         <div>
-//           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-//             Medicine Issuances
-//           </h1>
-//           <p className="text-gray-600 dark:text-gray-400">
-//             Track all medicine dispensing records
-//           </p>
-//         </div>
-//         <Button onClick={exportData} className="flex items-center space-x-2">
-//           <Download className="w-4 h-4" />
-//           <span>Export</span>
-//         </Button>
-//       </div>
-
-//       {/* Filters */}
-//       <Card>
-//         <CardContent>
-//           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-//             <div>
-//               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-//                 Recipient Type
-//               </label>
-//               <select
-//                 name="issuedTo"
-//                 value={filters.issuedTo}
-//                 onChange={handleFilterChange}
-//                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
-//               >
-//                 <option value="">All Types</option>
-//                 {recipientTypes.map(type => (
-//                   <option key={type} value={type}>{type}</option>
-//                 ))}
-//               </select>
-//             </div>
-
-//             <div>
-//               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-//                 Start Date
-//               </label>
-//               <input
-//                 type="date"
-//                 name="startDate"
-//                 value={filters.startDate}
-//                 onChange={handleFilterChange}
-//                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
-//               />
-//             </div>
-
-//             <div>
-//               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-//                 End Date
-//               </label>
-//               <input
-//                 type="date"
-//                 name="endDate"
-//                 value={filters.endDate}
-//                 onChange={handleFilterChange}
-//                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
-//               />
-//             </div>
-
-//             <div className="flex items-end">
-//               <Button onClick={applyFilters} className="w-full flex items-center justify-center space-x-2">
-//                 <Filter className="w-4 h-4" />
-//                 <span>Apply Filters</span>
-//               </Button>
-//             </div>
-//           </div>
-//         </CardContent>
-//       </Card>
-
-//       {/* Issuances Table */}
-//       <Card>
-//         <CardHeader>
-//           <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-//             Recent Issuances ({issuances.length})
-//           </h3>
-//         </CardHeader>
-//         <CardContent>
-//           <div className="overflow-x-auto">
-//             <table className="w-full">
-//               <thead>
-//                 <tr className="border-b border-gray-200 dark:border-gray-700">
-//                   <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">
-//                     Medicine
-//                   </th>
-//                   <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">
-//                     Recipient
-//                   </th>
-//                   <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">
-//                     Type
-//                   </th>
-//                   <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">
-//                     Quantity
-//                   </th>
-//                   <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">
-//                     Prescribed By
-//                   </th>
-//                   <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">
-//                     Date
-//                   </th>
-//                   <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">
-//                     Actions
-//                   </th>
-//                 </tr>
-//               </thead>
-//               <tbody>
-//                 {issuances.map((issuance) => (
-//                   <tr key={issuance._id} className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
-//                     <td className="py-3 px-4">
-//                       <div>
-//                         <p className="font-medium text-gray-900 dark:text-white">
-//                           {issuance.medicineId.name}
-//                         </p>
-//                         <p className="text-sm text-gray-500 dark:text-gray-400">
-//                           {issuance.medicineId.category}
-//                         </p>
-//                       </div>
-//                     </td>
-//                     <td className="py-3 px-4">
-//                       <div>
-//                         <p className="font-medium text-gray-900 dark:text-white">
-//                           {issuance.recipientName}
-//                         </p>
-//                         <p className="text-sm text-gray-500 dark:text-gray-400">
-//                           ID: {issuance.recipientID}
-//                         </p>
-//                       </div>
-//                     </td>
-//                     <td className="py-3 px-4">
-//                       <Badge variant={getRecipientBadgeVariant(issuance.issuedTo) as any}>
-//                         {issuance.issuedTo}
-//                       </Badge>
-//                     </td>
-//                     <td className="py-3 px-4">
-//                       <span className="font-medium text-gray-900 dark:text-white">
-//                         {issuance.quantityIssued}
-//                       </span>
-//                     </td>
-//                     <td className="py-3 px-4">
-//                       <span className="text-gray-900 dark:text-white">
-//                         {issuance.prescribedBy}
-//                       </span>
-//                     </td>
-//                     <td className="py-3 px-4">
-//                       <div>
-//                         <p className="text-gray-900 dark:text-white">
-//                           {format(new Date(issuance.issuedAt), 'MMM dd, yyyy')}
-//                         </p>
-//                         <p className="text-sm text-gray-500 dark:text-gray-400">
-//                           {format(new Date(issuance.issuedAt), 'HH:mm')}
-//                         </p>
-//                       </div>
-//                     </td>
-//                     <td className="py-3 px-4">
-//                       <Button size="sm" variant="secondary">
-//                         <Eye className="w-4 h-4" />
-//                       </Button>
-//                     </td>
-//                   </tr>
-//                 ))}
-//               </tbody>
-//             </table>
-//           </div>
-
-//           {issuances.length === 0 && (
-//             <div className="text-center py-12">
-//               <Calendar className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-//               <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-//                 No issuances found
-//               </h3>
-//               <p className="text-gray-500 dark:text-gray-400">
-//                 No medicine issuances match your current filters.
-//               </p>
-//             </div>
-//           )}
-//         </CardContent>
-//       </Card>
-//     </div>
-//   );
-// };
-
-// export default Issuances;
-
-
-
-
 import React, { useState, useEffect } from 'react';
-import { Calendar, Filter, Download, Eye, X } from 'lucide-react';
+import { Search, Package, User, FileText } from 'lucide-react';
 import Card, { CardContent, CardHeader } from '../components/UI/Card';
 import Button from '../components/UI/Button';
-import Badge from '../components/UI/Badge';
-import { issuanceAPI } from '../services/api';
-import { Issuance } from '../types';
-import { format } from 'date-fns';
+import Input from '../components/UI/Input';
+import Select from '../components/UI/Select';
+import { medicineAPI, issuanceAPI } from '../services/api';
+import { Medicine } from '../types';
 import toast from 'react-hot-toast';
 
-const Issuances: React.FC = () => {
-  const [issuances, setIssuances] = useState<Issuance[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [filters, setFilters] = useState({
-    issuedTo: '',
-    startDate: '',
-    endDate: ''
-  });
-  const [selectedIssuance, setSelectedIssuance] = useState<Issuance | null>(null);
+const getExpiryStatusText = (expiryDate: Date | string) => {
+  const today = new Date();
+  const expDate = new Date(expiryDate);
+  const diffInDays = Math.ceil((expDate.getTime() - today.getTime()) / (1000 * 3600 * 24));
 
-  const recipientTypes = ['GIZ Guest', 'AZI Guest', 'Employee'];
+  if (diffInDays < 0) return '❌ Expired';
+  if (diffInDays <= 30) return '⚠️ Expiring Soon';
+  return '✅ Valid';
+};
+
+const getExpiryStatusColor = (expiryDate: Date | string) => {
+  const today = new Date();
+  const expDate = new Date(expiryDate);
+  const diffInDays = Math.ceil((expDate.getTime() - today.getTime()) / (1000 * 3600 * 24));
+
+  if (diffInDays < 0) return 'text-red-600';
+  if (diffInDays <= 30) return 'text-yellow-500';
+  return 'text-green-600';
+};
+
+
+
+
+
+const IssueMedicine: React.FC = () => {
+  const [medicines, setMedicines] = useState<Medicine[]>([]);
+  const [selectedMedicine, setSelectedMedicine] = useState<Medicine | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [issuing, setIssuing] = useState(false);
+
+  const [formData, setFormData] = useState({
+    medicineId: '',
+    issuedTo: '',
+    recipientName: '',
+    recipientID: '',
+    quantityIssued: '',
+    prescribedBy: '',
+    notes: ''
+  });
+
+
+  const formatPriceToPKR = (price: number) => {
+    return price.toLocaleString('en-PK', {
+      style: 'currency',
+      currency: 'PKR',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    });
+  };
+
+  const recipientTypes = [
+    { value: '', label: 'Select recipient type' },
+    { value: 'GIZ Guest', label: 'GIZ Guest' },
+    { value: 'AZI Guest', label: 'AZI Guest' },
+    { value: 'Employee', label: 'Employee' }
+  ];
 
   useEffect(() => {
-    fetchIssuances();
-  }, []);
+    if (searchTerm.length >= 2) {
+      searchMedicines();
+    } else {
+      setMedicines([]);
+    }
+  }, [searchTerm]);
 
-  const fetchIssuances = async () => {
+  const searchMedicines = async () => {
     try {
-      const cleanedFilters = Object.fromEntries(
-        Object.entries(filters).filter(([_, v]) => v !== '')
-      );
-
-      const response = await issuanceAPI.getAll(cleanedFilters);
-      setIssuances(response.issuances || []);
+      setLoading(true);
+      const response = await medicineAPI.getAll({ search: searchTerm, limit: 10 });
+      setMedicines(response.medicines || []);
     } catch (error) {
-      console.error('Failed to fetch issuances:', error);
-      toast.error('Failed to load issuances');
+      console.error('Failed to search medicines:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleMedicineSelect = (medicine: Medicine) => {
+    setSelectedMedicine(medicine);
+    setFormData(prev => ({ ...prev, medicineId: medicine._id }));
+    setSearchTerm(medicine.name);
+    setMedicines([]);
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFilters(prev => ({ ...prev, [name]: value }));
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const applyFilters = () => {
-    setLoading(true);
-    fetchIssuances();
-  };
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-  const exportData = () => {
+    if (!selectedMedicine) {
+      toast.error('Please select a medicine');
+      return;
+    }
+
+    if (parseInt(formData.quantityIssued) > selectedMedicine.quantity) {
+      toast.error(`Insufficient stock. Available: ${selectedMedicine.quantity}`);
+      return;
+    }
+
     try {
-      const headers = ['Medicine', 'Category', 'Recipient', 'Type', 'Quantity', 'Prescribed By', 'Date', 'Time'];
-      const csvContent = [
-        headers.join(','),
-        ...issuances.map(issuance => [
-          `"${issuance.medicineId.name}"`,
-          `"${issuance.medicineId.category}"`,
-          `"${issuance.recipientName}"`,
-          `"${issuance.issuedTo}"`,
-          issuance.quantityIssued,
-          `"${issuance.prescribedBy}"`,
-          format(new Date(issuance.issuedAt), 'yyyy-MM-dd'),
-          format(new Date(issuance.issuedAt), 'HH:mm')
-        ].join(','))
-      ].join('\n');
+      setIssuing(true);
+      await issuanceAPI.create({
+        ...formData,
+        quantityIssued: parseInt(formData.quantityIssued)
+      });
 
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const link = document.createElement('a');
-      const url = URL.createObjectURL(blob);
-      link.setAttribute('href', url);
-      link.setAttribute('download', `issuances_${format(new Date(), 'yyyy-MM-dd')}.csv`);
-      link.style.visibility = 'hidden';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      toast.success('Medicine issued successfully');
 
-      toast.success('Export completed successfully');
-    } catch (error) {
-      toast.error('Failed to export data');
+      // Reset form
+      setFormData({
+        medicineId: '',
+        issuedTo: '',
+        recipientName: '',
+        recipientID: '',
+        quantityIssued: '',
+        prescribedBy: '',
+        notes: ''
+      });
+      setSelectedMedicine(null);
+      setSearchTerm('');
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Failed to issue medicine');
+    } finally {
+      setIssuing(false);
     }
   };
-
-  const getRecipientBadgeVariant = (type: string) => {
-    switch (type) {
-      case 'GIZ Guest': return 'info';
-      case 'AZI Guest': return 'warning';
-      case 'Employee': return 'success';
-      default: return 'default';
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            Medicine Issuances
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400">
-            Track all medicine dispensing records
-          </p>
-        </div>
-        <Button onClick={exportData} className="flex items-center space-x-2">
-          <Download className="w-4 h-4" />
-          <span>Export</span>
-        </Button>
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+          Issue Medicine
+        </h1>
+        <p className="text-gray-600 dark:text-gray-400">
+          Issue medicines to patients and track dispensing
+        </p>
       </div>
 
-      {/* Filters */}
-      <Card>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Recipient Type
-              </label>
-              <select
-                name="issuedTo"
-                value={filters.issuedTo}
-                onChange={handleFilterChange}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
-              >
-                <option value="">All Types</option>
-                {recipientTypes.map(type => (
-                  <option key={type} value={type}>{type}</option>
-                ))}
-              </select>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Medicine Search */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center space-x-2">
+              <Search className="w-5 h-5 text-gray-500" />
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                Select Medicine
+              </h3>
             </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Start Date
-              </label>
-              <input
-                type="date"
-                name="startDate"
-                value={filters.startDate}
-                onChange={handleFilterChange}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="relative">
+              <Input
+                placeholder="Search medicine by name..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
               />
-            </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                End Date
-              </label>
-              <input
-                type="date"
-                name="endDate"
-                value={filters.endDate}
-                onChange={handleFilterChange}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
-              />
-            </div>
+              {loading && (
+                <div className="absolute right-3 top-3">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                </div>
+              )}
 
-            <div className="flex items-end">
-              <Button onClick={applyFilters} className="w-full flex items-center justify-center space-x-2">
-                <Filter className="w-4 h-4" />
-                <span>Apply Filters</span>
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+              {medicines.map((medicine) => {
+                const expiryStatus = getExpiryStatusText(medicine.expiryDate);
 
-      {/* Issuances Table */}
-      <Card>
-        <CardHeader>
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-            Recent Issuances ({issuances.length})
-          </h3>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-gray-200 dark:border-gray-700">
-                  <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">Medicine</th>
-                  <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">Recipient</th>
-                  <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">Type</th>
-                  <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">Quantity</th>
-                  <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">Prescribed By</th>
-                  <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">Date</th>
-                  <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {issuances.map((issuance) => (
-                  <tr key={issuance._id} className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
-                    <td className="py-3 px-4">
+                return (
+                  <button
+                    key={medicine._id}
+                    onClick={() => handleMedicineSelect(medicine)}
+                    className="w-full px-4 py-3 text-left hover:bg-gray-50 dark:hover:bg-gray-700 border-b border-gray-100 dark:border-gray-600 last:border-b-0"
+                  >
+                    <div className="flex justify-between items-center">
                       <div>
                         <p className="font-medium text-gray-900 dark:text-white">
-                          {issuance.medicineId?.name || 'Unknown Medicine'}
+                          {medicine.name}
                         </p>
                         <p className="text-sm text-gray-500 dark:text-gray-400">
-                          {issuance.medicineId?.category || 'Unknown Category'}
+                          {medicine.category} • Stock: {medicine.quantity}
                         </p>
                       </div>
-
-                    </td>
-                    <td className="py-3 px-4">
-                      <div>
-                        <p className="font-medium text-gray-900 dark:text-white">{issuance.recipientName}</p>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">ID: {issuance.recipientID}</p>
+                      <div className="text-right">
+                        <p className="text-sm font-medium text-gray-900 dark:text-white">
+                          {formatPriceToPKR(medicine.price)}
+                        </p>
+                        <p className={`text-xs font-semibold ${getExpiryStatusColor(medicine.expiryDate)}`}>
+                          {expiryStatus}
+                        </p>
                       </div>
-                    </td>
-                    <td className="py-3 px-4">
-                      <Badge variant={getRecipientBadgeVariant(issuance.issuedTo) as any}>{issuance.issuedTo}</Badge>
-                    </td>
-                    <td className="py-3 px-4">
-                      <span className="font-medium text-gray-900 dark:text-white">{issuance.quantityIssued}</span>
-                    </td>
-                    <td className="py-3 px-4">
-                      <span className="text-gray-900 dark:text-white">{issuance.prescribedBy}</span>
-                    </td>
-                    <td className="py-3 px-4">
-                      <div>
-                        <p className="text-gray-900 dark:text-white">{format(new Date(issuance.issuedAt), 'MMM dd, yyyy')}</p>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">{format(new Date(issuance.issuedAt), 'HH:mm')}</p>
-                      </div>
-                    </td>
-                    <td className="py-3 px-4">
-                      <Button size="sm" variant="secondary" onClick={() => setSelectedIssuance(issuance)}>
-                        <Eye className="w-4 h-4" />
-                      </Button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
 
-          {issuances.length === 0 && (
-            <div className="text-center py-12">
-              <Calendar className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-                No issuances found
+            {/* Selected Medicine Details */}
+
+            {selectedMedicine && (
+              <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                <div className="flex items-center space-x-3">
+                  <Package className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+                  <div>
+                    <h4 className="font-medium text-gray-900 dark:text-white">
+                      {selectedMedicine.name}
+                    </h4>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      Available: {selectedMedicine.quantity} units • {formatPriceToPKR(selectedMedicine.price)} each
+                    </p>
+
+                  </div>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Issue Form */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center space-x-2">
+              <FileText className="w-5 h-5 text-gray-500" />
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                Issue Details
               </h3>
-              <p className="text-gray-500 dark:text-gray-400">
-                No medicine issuances match your current filters.
-              </p>
             </div>
-          )}
-        </CardContent>
-      </Card>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <Select
+                label="Issue To"
+                name="issuedTo"
+                value={formData.issuedTo}
+                onChange={handleInputChange}
+                options={recipientTypes}
+                required
+              />
 
-      {/* Detail View Card */}
-      {selectedIssuance && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-lg p-6 relative">
+              <Input
+                label="Recipient Name"
+                name="recipientName"
+                value={formData.recipientName}
+                onChange={handleInputChange}
+                placeholder="Enter recipient's full name"
+                required
+              />
 
-            {/* Close Button */}
-            <button
-              onClick={() => setSelectedIssuance(null)}
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-white"
-            >
-              ✕
-            </button>
+              <Input
+                label="Recipient ID"
+                name="recipientID"
+                value={formData.recipientID}
+                onChange={handleInputChange}
+                placeholder="Enter recipient's ID number"
+                required
+              />
 
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4 text-center">
-              Issuance Details
-            </h2>
+              <Input
+                label="Quantity to Issue"
+                type="number"
+                name="quantityIssued"
+                value={formData.quantityIssued}
+                onChange={handleInputChange}
+                placeholder="Enter quantity"
+                min="1"
+                max={selectedMedicine?.quantity || 1}
+                required
+              />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <h4 className="text-gray-500 dark:text-gray-400 mb-1">Medicine</h4>
-                <p className="text-lg font-bold text-gray-900 dark:text-white">{selectedIssuance.medicineId.name}</p>
+              <Input
+                label="Prescribed By"
+                name="prescribedBy"
+                value={formData.prescribedBy}
+                onChange={handleInputChange}
+                placeholder="Enter doctor's name"
+                required
+              />
+
+              <div className="space-y-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Notes (Optional)
+                </label>
+                <textarea
+                  name="notes"
+                  value={formData.notes}
+                  onChange={handleInputChange}
+                  rows={3}
+                  className="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                  placeholder="Additional notes or instructions..."
+                />
               </div>
 
-              <div>
-                <h4 className="text-gray-500 dark:text-gray-400 mb-1">Category</h4>
-                <p className="text-gray-900 dark:text-white">{selectedIssuance.medicineId.category}</p>
-              </div>
-
-              <div>
-                <h4 className="text-gray-500 dark:text-gray-400 mb-1">Recipient Name</h4>
-                <p className="text-lg font-bold text-gray-900 dark:text-white">{selectedIssuance.recipientName}</p>
-              </div>
-
-              <div>
-                <h4 className="text-gray-500 dark:text-gray-400 mb-1">Recipient ID</h4>
-                <p className="text-gray-900 dark:text-white">{selectedIssuance.recipientID}</p>
-              </div>
-
-              <div>
-                <h4 className="text-gray-500 dark:text-gray-400 mb-1">Issued To</h4>
-                <Badge variant={getRecipientBadgeVariant(selectedIssuance.issuedTo) as any}>
-                  {selectedIssuance.issuedTo}
-                </Badge>
-              </div>
-
-              <div>
-                <h4 className="text-gray-500 dark:text-gray-400 mb-1">Quantity Issued</h4>
-                <p className="text-gray-900 dark:text-white">{selectedIssuance.quantityIssued}</p>
-              </div>
-
-              <div>
-                <h4 className="text-gray-500 dark:text-gray-400 mb-1">Prescribed By</h4>
-                <p className="text-lg font-bold text-gray-900 dark:text-white">{selectedIssuance.prescribedBy}</p>
-              </div>
-
-              <div>
-                <h4 className="text-gray-500 dark:text-gray-400 mb-1">Issued Date</h4>
-                <p className="text-gray-900 dark:text-white">{format(new Date(selectedIssuance.issuedAt), 'MMM dd, yyyy')}</p>
-                <p className="text-sm text-gray-500 dark:text-gray-400">{format(new Date(selectedIssuance.issuedAt), 'HH:mm')}</p>
-              </div>
-            </div>
-
-            <div className="mt-6 flex justify-end">
-              <Button variant="secondary" onClick={() => setSelectedIssuance(null)}>
-                Close
+              <Button
+                type="submit"
+                className="w-full"
+                loading={issuing}
+                disabled={!selectedMedicine || !formData.issuedTo || !formData.recipientName}
+              >
+                Issue Medicine
               </Button>
-            </div>
-          </div>
-        </div>
-      )}
-
+            </form>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };
 
-export default Issuances;
+export default IssueMedicine;
