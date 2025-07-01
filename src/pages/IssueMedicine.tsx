@@ -8,6 +8,30 @@ import { medicineAPI, issuanceAPI } from '../services/api';
 import { Medicine } from '../types';
 import toast from 'react-hot-toast';
 
+const getExpiryStatusText = (expiryDate: Date | string) => {
+  const today = new Date();
+  const expDate = new Date(expiryDate);
+  const diffInDays = Math.ceil((expDate.getTime() - today.getTime()) / (1000 * 3600 * 24));
+
+  if (diffInDays < 0) return '❌ Expired';
+  if (diffInDays <= 30) return '⚠️ Expiring Soon';
+  return '✅ Valid';
+};
+
+const getExpiryStatusColor = (expiryDate: Date | string) => {
+  const today = new Date();
+  const expDate = new Date(expiryDate);
+  const diffInDays = Math.ceil((expDate.getTime() - today.getTime()) / (1000 * 3600 * 24));
+
+  if (diffInDays < 0) return 'text-red-600';
+  if (diffInDays <= 30) return 'text-yellow-500';
+  return 'text-green-600';
+};
+
+
+
+
+
 const IssueMedicine: React.FC = () => {
   const [medicines, setMedicines] = useState<Medicine[]>([]);
   const [selectedMedicine, setSelectedMedicine] = useState<Medicine | null>(null);
@@ -27,13 +51,13 @@ const IssueMedicine: React.FC = () => {
 
 
   const formatPriceToPKR = (price: number) => {
-  return price.toLocaleString('en-PK', {
-    style: 'currency',
-    currency: 'PKR',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0
-  });
-};
+    return price.toLocaleString('en-PK', {
+      style: 'currency',
+      currency: 'PKR',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    });
+  };
 
   const recipientTypes = [
     { value: '', label: 'Select recipient type' },
@@ -152,35 +176,39 @@ const IssueMedicine: React.FC = () => {
                 </div>
               )}
 
-              {medicines.length > 0 && (
-                <div className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                  {medicines.map((medicine) => (
-                    <button
-                      key={medicine._id}
-                      onClick={() => handleMedicineSelect(medicine)}
-                      className="w-full px-4 py-3 text-left hover:bg-gray-50 dark:hover:bg-gray-700 border-b border-gray-100 dark:border-gray-600 last:border-b-0"
-                    >
-                      <div className="flex justify-between items-center">
-                        <div>
-                          <p className="font-medium text-gray-900 dark:text-white">
-                            {medicine.name}
-                          </p>
-                          <p className="text-sm text-gray-500 dark:text-gray-400">
-                            {medicine.category} • Stock: {medicine.quantity}
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-sm font-medium text-gray-900 dark:text-white">
-                            {formatPriceToPKR(medicine.price)}
-                          </p>
+              {medicines.map((medicine) => {
+                const expiryStatus = getExpiryStatusText(medicine.expiryDate);
 
-                        </div>
+                return (
+                  <button
+                    key={medicine._id}
+                    onClick={() => handleMedicineSelect(medicine)}
+                    className="w-full px-4 py-3 text-left hover:bg-gray-50 dark:hover:bg-gray-700 border-b border-gray-100 dark:border-gray-600 last:border-b-0"
+                  >
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <p className="font-medium text-gray-900 dark:text-white">
+                          {medicine.name}
+                        </p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                          {medicine.category} • Stock: {medicine.quantity}
+                        </p>
                       </div>
-                    </button>
-                  ))}
-                </div>
-              )}
+                      <div className="text-right">
+                        <p className="text-sm font-medium text-gray-900 dark:text-white">
+                          {formatPriceToPKR(medicine.price)}
+                        </p>
+                        <p className={`text-xs font-semibold ${getExpiryStatusColor(medicine.expiryDate)}`}>
+                          {expiryStatus}
+                        </p>
+                      </div>
+                    </div>
+                  </button>
+                )
+              })}
             </div>
+
+            {/* Selected Medicine Details */}
 
             {selectedMedicine && (
               <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
