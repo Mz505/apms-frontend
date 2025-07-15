@@ -108,12 +108,7 @@ const Login: React.FC = () => {
               </Button>
             </form>
 
-            <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
-              <div className="text-center text-sm text-gray-500 dark:text-gray-400">
-                <p className="mb-2">Demo Credentials:</p>
-                <p><strong>Admin:</strong> admin@apms.com / admin123</p>
-                <p><strong>Pharmacist:</strong> pharmacist@apms.com / pharma123</p>
-              </div>
+            
             </div>
           </CardContent>
         </Card>
