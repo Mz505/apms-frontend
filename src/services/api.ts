@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { User, Medicine, Issuance, ActivityLog, DashboardStats } from '../types';
+import { id } from 'date-fns/locale';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -93,6 +94,7 @@ export const medicineAPI = {
   }
 };
 
+
 // Issuance API
 export const issuanceAPI = {
   getAll: async (params?: any) => {
@@ -108,8 +110,20 @@ export const issuanceAPI = {
   create: async (issuanceData: Partial<Issuance>) => {
     const response = await api.post('/issuances', issuanceData);
     return response.data;
+  },
+
+  update: async (id: string, issuanceData: Partial<Issuance>) => {
+    const response = await api.put(`/issuances/${id}`, issuanceData);
+    return response.data;
+  },
+
+  delete: async (id: string) => {
+    const response = await api.delete(`/issuances/${id}`);
+    return response.data;
   }
 };
+
+
 
 // Activity API
 export const activityAPI = {
@@ -215,5 +229,19 @@ export const usersAPI = {
     return response.data;
   }
 };
+
+// Settings API
+export const settingsAPI = {
+  get: async () => {
+    const response = await api.get('/settings');
+    return response.data;
+  },
+
+  save: async (settingsData: any) => {
+    const response = await api.post('/settings', settingsData);
+    return response.data;
+  }
+};
+
 
 export default api;
